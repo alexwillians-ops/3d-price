@@ -1,5 +1,5 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Preço de Impressão 3D</title>
+<title>Calculadora Preço 3D</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -149,6 +149,8 @@ tr.total td { font-weight: 600; }
 td.l { text-align: left; font-family: var(--f-body); font-size: 14px; color: var(--ink); }
 .ptable th, .ptable td { padding-left: 8px; }
 .ptable th:first-child, .ptable td:first-child { padding-left: 0; }
+.ctl textarea { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--f-data); font-size: 12px; padding: 9px 10px; outline: none; resize: vertical; width: 100%; }
+.ctl input[type="file"] { font-family: var(--f-body); font-size: 13px; }
 .mini td, .mini th { padding-left: 8px; }
 .pbtns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .hist summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; padding: 14px 16px; font-family: var(--f-display); font-weight: 700; font-size: 17px; list-style: none; }
@@ -172,16 +174,36 @@ td.l { text-align: left; font-family: var(--f-body); font-size: 14px; color: var
 .hdel:hover { color: var(--danger); }
 .empty { padding: 14px 12px; color: var(--muted); font-size: 13px; }
 @media (prefers-reduced-motion: no-preference) { .seg button, .btn { transition: background-color .15s, border-color .15s; } }
+
+#gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#gate .gbox { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+#gate h2 { margin: 0; font-size: 20px; }
+#gate p { margin: 0; color: var(--ink-2); font-size: 14px; }
+#gate input { font: inherit; font-family: var(--f-data); font-size: 16px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--field); color: var(--ink); text-transform: uppercase; width: 100%; box-sizing: border-box; }
+#gate .err { color: #b3261e; font-size: 13px; min-height: 18px; }
+:root[data-theme="dark"] #gate .err { color: #ff8a80; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #gate .err { color: #ff8a80; } }
 </style>
 
 <div class="wrap">
+<div id="gate" role="dialog" aria-labelledby="gtitle">
+  <form class="gbox" id="gform" autocomplete="off">
+    <h2 id="gtitle">Calculadora Preço 3D</h2>
+    <p>Digite seu código de acesso para continuar.</p>
+    <input id="gcode" type="text" placeholder="PRECO-XXXX-XXXX" aria-label="Código de acesso" spellcheck="false" autocapitalize="characters">
+    <div class="err" id="gerr" role="alert"></div>
+    <button class="btn" type="submit">Entrar</button>
+    <p class="hint">Não tem um código? Fale com quem te enviou o link.</p>
+  </form>
+</div>
   <header>
     <h1>Preço de impressão 3D</h1>
     <p>Preencha os dados da peça e dos seus custos. A calculadora soma tudo e mostra o preço que garante a margem de lucro que você escolheu.</p>
     <div class="chip-row">
-      <span class="tag">Bambu Lab A1 Mini</span>
-      <span class="tag">180 × 180 × 180 mm</span>
+      <span class="tag" id="tagModelo">Bambu Lab A1 Mini</span>
+      <span class="tag" id="tagVolume">180 × 180 × 180 mm</span>
       <span class="tag">valores iniciais são exemplos</span>
+      <span class="tag">seus dados ficam só neste navegador</span>
     </div>
   </header>
 
@@ -384,9 +406,23 @@ td.l { text-align: left; font-family: var(--f-body); font-size: 14px; color: var
   </div>
 </div>
 
+<div class="wrap panel" id="backup">
+  <details class="card hist" id="bkp">
+    <summary><span>Backup dos seus dados</span><span class="count">guarde uma cópia</span></summary>
+    <div class="hbody">
+      <p class="hint" style="margin:0">Seus dados ficam só neste navegador. Se você limpar os dados do navegador ou trocar de aparelho, eles somem. Baixe um backup de vez em quando e restaure quando precisar. O arquivo tem seus custos, produtos e vendas: não envie para quem você não conhece.</p>
+      <div><button class="btn" id="bkpSave" type="button">Baixar backup</button></div>
+      <p class="hint" id="bkpMsg" role="status" style="margin:0"></p>
+      <div class="field"><label for="bkpFile">Restaurar de um arquivo de backup</label><div class="ctl"><input id="bkpFile" type="file" accept=".json,application/json"></div></div>
+      <div class="field"><label for="bkpText">Ou cole o texto do backup</label><div class="ctl"><textarea id="bkpText" rows="4" spellcheck="false" placeholder="Cole aqui o conteúdo do arquivo de backup"></textarea></div></div>
+      <div><button class="btn ghost" id="bkpRestore" type="button">Restaurar</button></div>
+    </div>
+  </details>
+</div>
+
 <script>
 var SECTIONS = [
-  { t: "Peça", s: "Números que o Bambu Studio mostra depois de fatiar.", f: [
+  { t: "Peça", s: "Números que o seu fatiador mostra (Bambu Studio, OrcaSlicer, Cura, PrusaSlicer).", f: [
     { id: "peso", l: "Peso total", u: "g", v: 85, min: 0, step: 1, hint: "Peça mais suportes" },
     { id: "purga", l: "Purga e torre de cor", u: "g", v: 0, min: 0, step: 1, hint: "Só em impressão multicor" },
     { id: "h", l: "Tempo, horas", u: "h", v: 4, min: 0, step: 1 },
@@ -398,7 +434,7 @@ var SECTIONS = [
     { id: "minManual", l: "Tempo manual por impressão", u: "min", v: 15, min: 0, step: 5, hint: "Retirar, tirar suportes, lixar" },
     { id: "emb", l: "Embalagem por peça", u: "R$", v: 3, min: 0, step: 0.5 }
   ]},
-  { t: "Impressora", g: true, s: "Custo da máquina diluído a cada hora de impressão.", f: [
+  { t: "Impressora", g: true, modelo: true, s: "Custo da máquina diluído a cada hora de impressão.", f: [
     { id: "precoMaq", l: "Preço da impressora", u: "R$", v: 2500, min: 0, step: 50 },
     { id: "vida", l: "Vida útil estimada", u: "h", v: 4000, min: 1, step: 100 },
     { id: "manut", l: "Manutenção e peças", u: "R$/h", v: 0.25, min: 0, step: 0.05, hint: "Bico, correias, mesa" },
@@ -416,6 +452,33 @@ var SECTIONS = [
   ]}
 ];
 var MATS = [ { n: "PLA", p: 100 }, { n: "PETG", p: 110 }, { n: "TPU", p: 150 } ];
+/* Valores de exemplo (preço no Brasil varia). Volume e consumo são aproximados. */
+var PRINTERS = [
+  { id: "a1mini", nome: "Bambu Lab A1 Mini", vol: "180 × 180 × 180 mm", v: { precoMaq: 2500, vida: 4000, manut: 0.25, watts: 100 } },
+  { id: "a1", nome: "Bambu Lab A1", vol: "256 × 256 × 256 mm", v: { precoMaq: 3800, vida: 4000, manut: 0.3, watts: 130 } },
+  { id: "p1s", nome: "Bambu Lab P1S", vol: "256 × 256 × 256 mm", v: { precoMaq: 6500, vida: 5000, manut: 0.4, watts: 170 } },
+  { id: "x1c", nome: "Bambu Lab X1 Carbon", vol: "256 × 256 × 256 mm", v: { precoMaq: 9500, vida: 5000, manut: 0.45, watts: 180 } },
+  { id: "k1", nome: "Creality K1", vol: "220 × 220 × 250 mm", v: { precoMaq: 2800, vida: 3500, manut: 0.3, watts: 140 } },
+  { id: "e3v3se", nome: "Creality Ender-3 V3 SE", vol: "220 × 220 × 250 mm", v: { precoMaq: 1200, vida: 3000, manut: 0.2, watts: 80 } },
+  { id: "n4pro", nome: "Elegoo Neptune 4 Pro", vol: "225 × 225 × 265 mm", v: { precoMaq: 1800, vida: 3000, manut: 0.2, watts: 100 } },
+  { id: "outra", nome: "Outra (personalizada)", vol: "", v: null }
+];
+function printer(id) { return PRINTERS.filter(function (p) { return p.id === id; })[0] || PRINTERS[PRINTERS.length - 1]; }
+function modeloHtml() {
+  var o = PRINTERS.map(function (p) { return '<option value="' + p.id + '">' + p.nome + '</option>'; }).join("");
+  return '<div class="field" style="margin-bottom:12px"><label for="modelo">Modelo da impressora</label><div class="ctl"><select id="modelo">' + o + '</select></div><span class="hint" id="modeloHint"></span></div>';
+}
+function updateModeloUi() {
+  var p = printer(state.modelo);
+  $("tagModelo").textContent = p.id === "outra" ? "Impressora personalizada" : p.nome;
+  $("tagVolume").textContent = p.vol; $("tagVolume").hidden = !p.vol;
+  $("modeloHint").textContent = p.v ? "Valores de exemplo para este modelo. O preço varia: ajuste ao que você pagou." : "Preencha abaixo os dados da sua impressora.";
+}
+function applyModelo(id, fromUser) {
+  var p = printer(id); state.modelo = p.id; $("modelo").value = p.id;
+  if (fromUser && p.v) { Object.keys(p.v).forEach(function (k) { $(k).value = p.v[k]; }); readAll(); }
+  updateModeloUi(); render(); if (fromUser) onGenChange();
+}
 var KEY = "precificacao-a1mini-v1";
 var brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 var pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
@@ -445,6 +508,7 @@ function build() {
       MATS.forEach(function (m, i) { html += '<button type="button" data-i="' + i + '" aria-pressed="false">' + m.n + '</button>'; });
       html += '</div>';
     }
+    if (s.modelo) html += modeloHtml();
     html += '<div class="fields">';
     s.f.forEach(function (f) {
       html += '<div class="field"><label for="' + f.id + '">' + f.l + '</label><div class="ctl"><input id="' + f.id + '" type="number" inputmode="decimal" min="' + f.min + '"' +
@@ -458,8 +522,10 @@ function build() {
   html += '<p class="hint" id="genMsg" role="status" style="margin:0"></p></div></details>';
   form.innerHTML = html;
   $("nome").value = state.nome || "";
+  $("modelo").value = state.modelo; updateModeloUi();
   form.addEventListener("input", function (e) {
     var t = e.target;
+    if (t.id === "modelo") { applyModelo(t.value, true); return; }
     if (t.id === "nome") { state.nome = t.value; save(state); updateSaveLabel(); return; }
     if (t.id === "margemRange") { $("margem").value = t.value; }
     if (DEFAULTS.hasOwnProperty(t.id) || t.id === "margemRange") { readAll(); if (t.id === "margem") $("margemRange").value = t.value; render(); if (GENERAL_KEYS.indexOf(t.id) >= 0 || t.id === "margemRange") onGenChange(); }
@@ -593,7 +659,8 @@ document.addEventListener("focusout", function () { tip.style.display = "none"; 
 /* resumo */
 function summary() {
   var r = last, L = [];
-  L.push(state.nome ? state.nome + " (Bambu Lab A1 Mini)" : "Preço de impressão 3D (Bambu Lab A1 Mini)");
+  var pm = printer(state.modelo);
+  L.push((state.nome || "Preço de impressão 3D") + (pm.id === "outra" ? "" : " (" + pm.nome + ")"));
   L.push("Peso: " + state.peso + " g · Tempo: " + state.h + " h " + state.min + " min · Peças na placa: " + state.n);
   ITEMS.forEach(function (it) { L.push(it[1] + ": " + brl.format(r.parts[it[0]])); });
   L.push("Preço de venda por peça: " + (r.ok ? brl.format(r.preco) : "—") + " (margem " + state.margem + "%)");
@@ -611,7 +678,7 @@ $("copy").addEventListener("click", function () {
   try { navigator.clipboard.writeText(txt).then(function () { done("Resumo copiado"); }, fallback); } catch (e) { fallback(); }
 });
 $("reset").addEventListener("click", function () {
-  Object.keys(DEFAULTS).forEach(function (k) { $(k).value = DEFAULTS[k]; }); setTimeout(onGenChange, 0);
+  Object.keys(DEFAULTS).forEach(function (k) { $(k).value = DEFAULTS[k]; }); state.modelo = "outra"; $("modelo").value = "outra"; updateModeloUi(); setTimeout(onGenChange, 0);
   readAll(); render();
 });
 
@@ -726,7 +793,7 @@ function setGenMsg(t, err) {
   m.textContent = t; m.style.color = err ? "var(--danger)" : "";
   clearTimeout(gmTimer); if (t) gmTimer = setTimeout(function () { m.textContent = ""; }, 4000);
 }
-function genValues() { var o = {}; GENERAL_KEYS.forEach(function (k) { o[k] = state[k]; }); return o; }
+function genValues() { var o = {}; GENERAL_KEYS.forEach(function (k) { o[k] = state[k]; }); o.modelo = state.modelo; return o; }
 function onGenChange() { renderList(); clearTimeout(genTimer); genTimer = setTimeout(saveGen, 700); }
 async function saveGen() {
   if (mode !== "db" || !cfgDoc) { setGenMsg("Custos gerais guardados neste navegador."); return; }
@@ -741,13 +808,14 @@ function applyGen(d) {
   var changed = false;
   GENERAL_KEYS.forEach(function (k) { if (typeof d[k] === "number" && d[k] !== state[k]) { $(k).value = d[k]; changed = true; } });
   genApplied = true;
+  if (typeof d.modelo === "string" && d.modelo !== state.modelo) { state.modelo = printer(d.modelo).id; $("modelo").value = state.modelo; updateModeloUi(); changed = true; }
   if (changed) { readAll(); render(); renderList(); }
 }
 function useLocal() { mode = "local"; items = readLocal(); renderList(); }
 async function initStore() {
   renderList();
   var db = null;
-  try { if (window.claude && window.claude.use) db = await window.claude.use("db"); } catch (e) {}
+  try { /* copia para o grupo: sem banco compartilhado, tudo fica no navegador */ } catch (e) {}
   if (!db) { useLocal(); return; }
   try {
     col = db.collection("produtos"); mode = "db";
@@ -760,7 +828,7 @@ async function initStore() {
   } catch (e) { useLocal(); }
 }
 
-build(); readAll(); state.nome = state.nome || ""; render();
+state.modelo = printer(state.modelo).id; build(); readAll(); state.nome = state.nome || ""; render();
 $("save").addEventListener("click", saveItem);
 $("novo").addEventListener("click", function () {
   state.nome = ""; $("nome").value = ""; save(state); updateSaveLabel();
@@ -1018,7 +1086,7 @@ initStore();
 
   async function init() {
     var db = null;
-    try { if (window.claude && window.claude.use) db = await window.claude.use("db"); } catch (e) {}
+    try { /* copia para o grupo: sem banco compartilhado, tudo fica no navegador */ } catch (e) {}
     if (!db) { vMode = "local"; V = lsGet(VKEY, []); if (!Array.isArray(V)) V = []; renderVend(); return; }
     vMode = "db"; vcol = db.collection("vendas"); metaDoc = db.doc("config/meta");
     vcol.onSnapshot(function (s) {
@@ -1032,5 +1100,131 @@ initStore();
   init();
 })();
 </script>
+
+<script>
+(function () {
+  var VKEY = "precificacao-a1mini-vendas-v1", MKEY = "precificacao-a1mini-meta-v1", OKEY = "precificacao-a1mini-orc-v1";
+  var confirming = false, confirmTimer = null, msgTimer = null;
+  function lsGet(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function ymd() { var d = new Date(), m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd; }
+  function num(x, d, neg) { x = Number(x); return isFinite(x) && (neg || x >= 0) ? x : d; }
+  function str(x, n) { return typeof x === "string" ? x.slice(0, n) : ""; }
+  function setBk(t, err) {
+    var m = $("bkpMsg"); m.textContent = t; m.style.color = err ? "var(--danger)" : "";
+    clearTimeout(msgTimer); if (t) msgTimer = setTimeout(function () { m.textContent = ""; }, 12000);
+  }
+
+  function collect() {
+    return {
+      app: "calculadora-preco-3d", versao: 1, exportadoEm: new Date().toISOString(),
+      dados: {
+        state: JSON.parse(JSON.stringify(state)),
+        produtos: items.map(function (p) { return { id: p.id, nome: p.nome, inputs: p.inputs, criadoEm: p.criadoEm, atualizadoEm: p.atualizadoEm }; }),
+        vendas: lsGet(VKEY, []), meta: lsGet(MKEY, {}), orcamento: lsGet(OKEY, {})
+      }
+    };
+  }
+
+  function sanitize(o) {
+    if (!o || o.app !== "calculadora-preco-3d" || !o.dados || typeof o.dados !== "object") return null;
+    var d = o.dados, s0 = d.state && typeof d.state === "object" ? d.state : {}, st = {}, seen = {};
+    Object.keys(DEFAULTS).forEach(function (k) { st[k] = num(s0[k], DEFAULTS[k]); });
+    st.nome = str(s0.nome, 80); st.modelo = printer(s0.modelo).id;
+    var prods = (Array.isArray(d.produtos) ? d.produtos : []).slice(0, 2000).filter(function (p) {
+      return p && typeof p.id === "string" && /^[A-Za-z0-9_.~:@+-]{1,100}$/.test(p.id) && typeof p.nome === "string" && p.nome.trim() && !seen[p.id] && (seen[p.id] = true);
+    }).map(function (p) {
+      var inp = {}; PRODUCT_KEYS.forEach(function (k) { inp[k] = num(p.inputs && p.inputs[k], DEFAULTS[k]); });
+      return { id: p.id, nome: str(p.nome, 80), inputs: inp, criadoEm: str(p.criadoEm, 40), atualizadoEm: str(p.atualizadoEm, 40) };
+    });
+    var vendas = (Array.isArray(d.vendas) ? d.vendas : []).slice(0, 20000).filter(function (x) {
+      return x && typeof x.nome === "string" && /^\d{4}-\d{2}-\d{2}$/.test(String(x.data));
+    }).map(function (x, i) {
+      return { id: typeof x.id === "string" && x.id ? str(x.id, 60) : "r" + i, nome: str(x.nome, 80), produtoId: str(x.produtoId, 100),
+        qtd: Math.max(1, Math.round(num(x.qtd, 1))), preco: num(x.preco, 0), rep: num(x.rep, 0), mo: num(x.mo, 0), taxas: num(x.taxas, 0),
+        lucro: num(x.lucro, 0, true), data: x.data, criadoEm: str(x.criadoEm, 40) };
+    });
+    var m0 = d.meta && typeof d.meta === "object" ? d.meta : {};
+    var meta = { meta: num(m0.meta, 1000), conta: m0.conta === "p" ? "p" : "pl", horas: num(m0.horas, 35) };
+    var o0 = d.orcamento && typeof d.orcamento === "object" ? d.orcamento : {};
+    var orc = { cliente: str(o0.cliente, 80), desc: Math.min(90, num(o0.desc, 0)), frete: num(o0.frete, 0), val: Math.round(num(o0.val, 7)),
+      linhas: (Array.isArray(o0.linhas) ? o0.linhas : []).slice(0, 200).filter(function (l) { return l && typeof l.id === "string"; })
+        .map(function (l) { return { id: str(l.id, 100), qtd: Math.max(1, Math.round(num(l.qtd, 1))) }; }) };
+    return { state: st, produtos: prods, vendas: vendas, meta: meta, orc: orc };
+  }
+
+  $("bkpSave").addEventListener("click", async function () {
+    var text = JSON.stringify(collect(), null, 2), fname = "backup-calculadora-3d-" + ymd() + ".json", dl = null;
+    try { if (window.claude && window.claude.use) dl = await window.claude.use("downloads"); } catch (e) {}
+    if (dl) {
+      try { await dl.save({ filename: fname, data: text }); setBk("Backup pronto. Guarde o arquivo em um lugar seguro."); return; }
+      catch (e) { if (e && e.code === "declined") { setBk("Download cancelado."); return; } }
+    }
+    $("bkpText").value = text; $("bkpText").select();
+    try { await navigator.clipboard.writeText(text); setBk("Não foi possível baixar o arquivo aqui. O texto do backup foi copiado: cole em um arquivo .json e guarde."); }
+    catch (e) { setBk("Não foi possível baixar o arquivo aqui. Copie o texto da caixa abaixo e guarde em um arquivo .json."); }
+  });
+
+  function resetConfirm() { confirming = false; $("bkpRestore").textContent = "Restaurar"; clearTimeout(confirmTimer); }
+  $("bkpText").addEventListener("input", resetConfirm);
+  $("bkpFile").addEventListener("change", function () {
+    var f = this.files && this.files[0]; if (!f) return;
+    if (f.size > 8 * 1024 * 1024) { setBk("Arquivo grande demais para ser um backup desta calculadora.", true); return; }
+    var rd = new FileReader();
+    rd.onload = function () { $("bkpText").value = String(rd.result || ""); resetConfirm(); setBk("Arquivo carregado. Clique em Restaurar para conferir o conteúdo."); };
+    rd.onerror = function () { setBk("Não foi possível ler o arquivo.", true); };
+    rd.readAsText(f);
+  });
+  $("bkpRestore").addEventListener("click", function () {
+    var raw = $("bkpText").value.trim();
+    if (!raw) { setBk("Escolha um arquivo de backup ou cole o texto dele.", true); return; }
+    var o; try { o = JSON.parse(raw); } catch (e) { setBk("O texto não é um backup válido.", true); return; }
+    var data = sanitize(o);
+    if (!data) { setBk("Este conteúdo não parece um backup desta calculadora.", true); return; }
+    if (!confirming) {
+      confirming = true; $("bkpRestore").textContent = "Confirmar restauração";
+      setBk("Isto substitui os dados deste navegador por " + data.produtos.length + " produto(s) e " + data.vendas.length + " venda(s) do backup. Clique em Confirmar restauração para continuar.");
+      clearTimeout(confirmTimer); confirmTimer = setTimeout(resetConfirm, 10000); return;
+    }
+    resetConfirm();
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data.state)); localStorage.setItem(PKEY, JSON.stringify(data.produtos));
+      localStorage.setItem(VKEY, JSON.stringify(data.vendas)); localStorage.setItem(MKEY, JSON.stringify(data.meta)); localStorage.setItem(OKEY, JSON.stringify(data.orc));
+    } catch (e) { setBk("Não foi possível gravar os dados neste navegador.", true); return; }
+    setBk("Backup restaurado. Recarregando a página. Se ela não recarregar sozinha, recarregue manualmente.");
+    setTimeout(function () { try { location.reload(); } catch (e) {} }, 700);
+  });
+})();
+</script>
+<script>
+(function () {
+  var HASHES = ["658f65951a0722de8abc09058228fed015f45bdfcc418d912d089790c421c9db", "c9a32ecad2da25624a50b0a7b704de74eb7df612a805d9d792b6bcc3acf23ff4", "6283df23f66f35e010692905506677d839e5590ad2c592298d6af16d73ced6ab", "60606a8d7207936f3912d12cebfe17076ac90f9f267688f949cd410db0544fce", "cb1044a7bd062c49503f14ea44ff240497893b994b0096a774417b99d62e1211", "96672479965ec39c7b20e4b3435e0c71a13c7067b968f210c8a5136e93494c0d", "9a45cb9c6bd839c0f9780d0281f1ec39acd16aab48ecbe09523d685010cec520", "3dc29f06f9926570dbcb7da30f7b7e649d03d99b9c5beb3b0afb792a2265a12d", "a0900ea60cd88581e000a713d57a6bae7eadbc52d517b3c33a986d85139d494b", "04430f33d73a69d6a63f02c032724e49f8115ce757149bf823907c8be45e4fa8"];
+  var SALT = "calc3d-v1:", KEY = "calc3d_acesso";
+  var gate = document.getElementById("gate"), form = document.getElementById("gform"),
+      inp = document.getElementById("gcode"), err = document.getElementById("gerr");
+  function open() { gate.hidden = true; }
+  function hex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ("0" + b.toString(16)).slice(-2); }).join(""); }
+  function hash(t) { return crypto.subtle.digest("SHA-256", new TextEncoder().encode(SALT + t)).then(hex); }
+  function norm(t) { return String(t || "").trim().toUpperCase().replace(/\s+/g, ""); }
+  function saved() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  var s = saved();
+  if (s && HASHES.indexOf(s) > -1) open();
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    err.textContent = "";
+    var c = norm(inp.value);
+    if (!c) { err.textContent = "Digite o código."; return; }
+    if (!(window.crypto && crypto.subtle)) { err.textContent = "Seu navegador não suporta a verificação."; return; }
+    hash(c).then(function (h) {
+      if (HASHES.indexOf(h) > -1) {
+        try { localStorage.setItem(KEY, h); } catch (e) {}
+        open();
+      } else { err.textContent = "Código inválido. Confira e tente de novo."; inp.select(); }
+    });
+  });
+  if (!gate.hidden) setTimeout(function () { inp.focus(); }, 50);
+})();
+</script>
+
+
 
 </body></html>
