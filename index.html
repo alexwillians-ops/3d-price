@@ -1,0 +1,1036 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Preço de Impressão 3D</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ficha técnica em duas colunas. Entradas à esquerda, resultado fixo à direita (empilha no celular, resultado primeiro). */
+:root {
+  --bg: #f1f5f4;
+  --surface: #fbfcfb;
+  --ink: #0f1a18;
+  --ink-2: #4a5755;
+  --muted: #6b7774;
+  --line: #dde5e3;
+  --field: #f1f5f4;
+  --accent: #0e6f66;
+  --accent-ink: #ffffff;
+  --layer: rgba(14, 111, 102, 0.07);
+  --danger: #b42323;
+  --s-fil: #2a78d6;
+  --s-en: #eb6834;
+  --s-dep: #1baf7a;
+  --s-fal: #eda100;
+  --s-mo: #e87ba4;
+  --s-emb: #008300;
+  --s-tax: #6250d6;
+  --s-luc: #0f1a18;
+  --f-display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1716; --surface: #172120; --ink: #e8f0ee; --ink-2: #b4c2bf; --muted: #8a9895;
+    --line: #26332f; --field: #0f1716; --accent: #3cc4b4; --accent-ink: #04201c;
+    --layer: rgba(60, 196, 180, 0.08); --danger: #f08a8a;
+    --s-fil: #3987e5; --s-en: #d95926; --s-dep: #199e70; --s-fal: #c98500;
+    --s-mo: #d55181; --s-emb: #008300; --s-tax: #9085e9; --s-luc: #e8f0ee;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1716; --surface: #172120; --ink: #e8f0ee; --ink-2: #b4c2bf; --muted: #8a9895;
+  --line: #26332f; --field: #0f1716; --accent: #3cc4b4; --accent-ink: #04201c;
+  --layer: rgba(60, 196, 180, 0.08); --danger: #f08a8a;
+  --s-fil: #3987e5; --s-en: #d95926; --s-dep: #199e70; --s-fal: #c98500;
+  --s-mo: #d55181; --s-emb: #008300; --s-tax: #9085e9; --s-luc: #e8f0ee;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  padding-block: 28px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 20px; }
+header h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px, 4.5vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+header p { margin: 6px 0 0; color: var(--ink-2); max-width: 62ch; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.tag { font-family: var(--f-data); font-size: 12px; color: var(--ink-2); border: 1px solid var(--line); padding: 3px 8px; border-radius: 4px; background: var(--surface); }
+
+.layout { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "result" "inputs"; align-items: start; }
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); grid-template-areas: "inputs result"; }
+  .result { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+}
+.inputs { grid-area: inputs; display: grid; gap: 16px; min-width: 0; }
+.result { grid-area: result; min-width: 0; }
+
+fieldset { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 16px; margin: 0; min-width: 0; }
+legend { font-family: var(--f-display); font-weight: 700; font-size: 17px; padding: 0 6px; margin-left: -6px; }
+.sub { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+.fields { display: grid; gap: 12px 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.field { display: grid; gap: 4px; min-width: 0; align-content: start; }
+.field label { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.ctl { display: flex; align-items: stretch; border: 1px solid var(--line); background: var(--field); border-radius: 6px; min-width: 0; }
+.ctl:focus-within { border-color: var(--accent); outline: 2px solid var(--accent); outline-offset: 1px; }
+.ctl input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--f-data); font-size: 15px; padding: 9px 10px; outline: none; width: 100%; }
+.ctl .u { display: flex; align-items: center; padding: 0 10px; color: var(--muted); font-family: var(--f-data); font-size: 12px; border-left: 1px solid var(--line); white-space: nowrap; }
+.hint { font-size: 12px; color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.seg button { font: inherit; font-size: 13px; font-weight: 500; color: var(--ink-2); background: var(--field); border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; }
+
+.card { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; overflow: hidden; }
+.hero { padding: 20px 20px 18px; background-image: repeating-linear-gradient(0deg, transparent 0 6px, var(--layer) 6px 7px); border-bottom: 1px solid var(--line); }
+.hero .k { font-size: 13px; color: var(--ink-2); font-weight: 500; }
+.price { font-family: var(--f-display); font-weight: 700; font-size: clamp(48px, 9vw, 64px); line-height: 1; letter-spacing: -0.02em; margin: 6px 0 4px; overflow-wrap: anywhere; }
+.lote { font-size: 13px; color: var(--ink-2); min-height: 20px; }
+.warn { color: var(--danger); font-size: 13px; margin-top: 6px; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+.stat { padding: 12px 14px; border-right: 1px solid var(--line); min-width: 0; }
+.stat:last-child { border-right: 0; }
+.stat .k { font-size: 12px; color: var(--muted); }
+.stat .v { font-family: var(--f-display); font-weight: 700; font-size: 18px; margin-top: 2px; overflow-wrap: anywhere; }
+.sec { padding: 16px 20px; display: grid; gap: 12px; }
+.sec h2 { margin: 0; font-family: var(--f-display); font-size: 15px; font-weight: 700; }
+.bar { display: flex; gap: 2px; height: 24px; }
+.bar .seg-b { height: 24px; min-width: 2px; border-radius: 0; cursor: default; }
+.bar .seg-b:last-child { border-radius: 0 4px 4px 0; }
+.bar .seg-b:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: right; font-weight: 500; color: var(--muted); font-size: 12px; padding: 4px 0 6px; }
+th:first-child { text-align: left; }
+td { padding: 6px 0; border-top: 1px solid var(--line); text-align: right; font-family: var(--f-data); font-size: 13px; font-variant-numeric: tabular-nums; }
+td:first-child { text-align: left; font-family: var(--f-body); font-size: 14px; color: var(--ink); }
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: baseline; }
+tr.total td { font-weight: 600; }
+.scroll { overflow-x: auto; }
+.mtab td, .mtab th { padding-left: 8px; white-space: nowrap; }
+.mtab tr.cur td { background: var(--layer); font-weight: 600; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 20px 18px; }
+.btn { font: inherit; font-size: 14px; font-weight: 600; border-radius: 6px; padding: 9px 14px; cursor: pointer; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 500; }
+.note { font-size: 12px; color: var(--muted); padding: 0 20px 16px; margin: 0; }
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; padding: 6px 9px; border-radius: 6px; display: none; max-width: 220px; }
+#nome { font-family: var(--f-body); }
+.caixas { border-bottom: 1px solid var(--line); }
+.caixas .sub { margin: 0; }
+.boxes { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); }
+.box { border: 1px solid var(--line); background: var(--field); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.box.luc { border-color: var(--accent); }
+.bt { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); }
+.bv { font-family: var(--f-display); font-weight: 700; font-size: 22px; margin-top: 2px; overflow-wrap: anywhere; }
+.bp { font-family: var(--f-data); font-size: 12px; color: var(--muted); min-height: 16px; }
+.bd { font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+.tax-line { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--ink-2); }
+.tax-line span:last-child { font-family: var(--f-data); white-space: nowrap; }
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.tabs button { font: inherit; font-size: 14px; font-weight: 600; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 9px 16px; cursor: pointer; }
+.tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.panel { margin-top: 20px; }
+.two { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .two { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.stack { display: grid; gap: 20px; min-width: 0; }
+.ctl select { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink); font-family: var(--f-body); font-size: 15px; padding: 9px 10px; outline: none; width: 100%; }
+.ctl select option { background: var(--surface); color: var(--ink); }
+.addrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.meter { height: 12px; background: var(--layer); border-radius: 6px; overflow: hidden; }
+.meter > i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 0 4px 4px 0; }
+.ox { background: transparent; border: 0; color: var(--muted); cursor: pointer; font: inherit; font-size: 12px; padding: 4px 6px; }
+.ox:hover { color: var(--danger); }
+.pre { white-space: pre-wrap; font-family: var(--f-data); font-size: 13px; background: var(--field); border: 1px solid var(--line); border-radius: 6px; padding: 12px; margin: 0; overflow-wrap: anywhere; }
+.bad { color: var(--danger); }
+td.l { text-align: left; font-family: var(--f-body); font-size: 14px; color: var(--ink); }
+.ptable th, .ptable td { padding-left: 8px; }
+.ptable th:first-child, .ptable td:first-child { padding-left: 0; }
+.mini td, .mini th { padding-left: 8px; }
+.pbtns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.hist summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; padding: 14px 16px; font-family: var(--f-display); font-weight: 700; font-size: 17px; list-style: none; }
+.hist summary::-webkit-details-marker { display: none; }
+.hist summary .count { font-family: var(--f-data); font-weight: 400; font-size: 12px; color: var(--muted); }
+.hbody { padding: 0 16px 16px; display: grid; gap: 10px; }
+.gen summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; cursor: pointer; padding: 14px 16px; font-family: var(--f-display); font-weight: 700; font-size: 17px; list-style: none; }
+.gen summary::-webkit-details-marker { display: none; }
+.gen summary .count { font-family: var(--f-body); font-weight: 400; font-size: 12px; color: var(--muted); text-align: right; }
+.genbody { padding: 0 16px 16px; display: grid; gap: 12px; }
+.hlist { list-style: none; margin: 0; padding: 0; max-height: 264px; overflow-y: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--field); }
+.hrow { display: flex; border-top: 1px solid var(--line); }
+.hrow:first-child { border-top: 0; }
+.hopen { flex: 1; min-width: 0; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; font: inherit; color: var(--ink); background: transparent; border: 0; padding: 10px 12px; cursor: pointer; }
+.hopen:hover { background: var(--layer); }
+.hl { display: grid; min-width: 0; }
+.hn { font-weight: 600; overflow-wrap: anywhere; }
+.hm { font-family: var(--f-data); font-size: 12px; color: var(--muted); }
+.hp { font-family: var(--f-display); font-weight: 700; font-size: 17px; white-space: nowrap; }
+.hdel { font: inherit; font-size: 12px; color: var(--muted); background: transparent; border: 0; border-left: 1px solid var(--line); padding: 0 12px; cursor: pointer; }
+.hdel:hover { color: var(--danger); }
+.empty { padding: 14px 12px; color: var(--muted); font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) { .seg button, .btn { transition: background-color .15s, border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Preço de impressão 3D</h1>
+    <p>Preencha os dados da peça e dos seus custos. A calculadora soma tudo e mostra o preço que garante a margem de lucro que você escolheu.</p>
+    <div class="chip-row">
+      <span class="tag">Bambu Lab A1 Mini</span>
+      <span class="tag">180 × 180 × 180 mm</span>
+      <span class="tag">valores iniciais são exemplos</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs" aria-label="Seções">
+    <button type="button" data-tab="calc" aria-pressed="true">Calculadora</button>
+    <button type="button" data-tab="orc" aria-pressed="false">Orçamento</button>
+    <button type="button" data-tab="vend" aria-pressed="false">Vendas e meta</button>
+  </nav>
+
+  <details class="card hist" id="hist" open>
+    <summary><span>Produtos salvos</span><span class="count" id="hcount"></span></summary>
+    <div class="hbody">
+      <div class="ctl"><input id="busca" type="search" autocomplete="off" placeholder="Buscar produto pelo nome" aria-label="Buscar produto salvo"></div>
+      <ul class="hlist" id="hlist"></ul>
+      <p class="hint" id="hnote"></p>
+    </div>
+  </details>
+
+  <div class="layout">
+    <section class="result" aria-live="polite">
+      <div class="card">
+        <div class="hero">
+          <div class="k">Preço de venda sugerido, por peça</div>
+          <div class="price" id="price">R$ 0,00</div>
+          <div class="lote" id="lote"></div>
+          <div class="warn" id="warn" hidden></div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Custo por peça</div><div class="v" id="s-custo"></div></div>
+          <div class="stat"><div class="k">Lucro por peça</div><div class="v" id="s-lucro"></div></div>
+          <div class="stat"><div class="k">Preço por hora</div><div class="v" id="s-hora"></div></div>
+        </div>
+        <div class="sec caixas" id="caixas">
+          <h2>Separe em 3 caixinhas</h2>
+          <p class="sub">A cada venda, divida o dinheiro assim (valores por peça).</p>
+          <div class="boxes">
+            <div class="box"><div class="bt">Reposição</div><div class="bv" id="b-rep"></div><div class="bp" id="b-rep-p"></div><div class="bd">Filamento, energia, falhas, embalagem e a reserva para trocar a impressora. Não é seu: é para comprar de novo.</div></div>
+            <div class="box"><div class="bt">Seu pagamento</div><div class="bv" id="b-mo"></div><div class="bp" id="b-mo-p"></div><div class="bd">O valor do seu tempo de trabalho na peça.</div></div>
+            <div class="box luc"><div class="bt">Lucro</div><div class="bv" id="b-luc"></div><div class="bp" id="b-luc-p"></div><div class="bd">O que sobra depois de tudo pago. Reinvista, guarde ou retire.</div></div>
+          </div>
+          <div class="tax-line"><span>Fora das caixinhas: taxas e impostos, que vão para o canal de venda e o governo</span><span id="b-tax"></span></div>
+        </div>
+        <div class="sec">
+          <h2>Para onde vai o preço</h2>
+          <div class="bar" id="bar" role="img" aria-label="Composição do preço de venda"></div>
+          <table>
+            <thead><tr><th>Item</th><th>R$ por peça</th><th>% do preço</th></tr></thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <div class="sec" id="redondo" style="border-top:1px solid var(--line)">
+          <h2>Preço mínimo e preço redondo</h2>
+          <p class="sub" style="margin:0" id="minTxt"></p>
+          <div class="scroll">
+            <table class="mtab">
+              <thead><tr><th>Opção</th><th>Preço</th><th>Lucro</th><th>Margem real</th></tr></thead>
+              <tbody id="rdRows"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="sec" style="border-top:1px solid var(--line)">
+          <h2>E se a margem for outra?</h2>
+          <div class="scroll">
+            <table class="mtab">
+              <thead><tr><th>Margem</th><th id="m1"></th><th id="m2"></th><th id="m3"></th><th id="m4"></th><th id="m5"></th></tr></thead>
+              <tbody><tr id="mp"></tr><tr id="ml"></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="copy" type="button">Copiar resumo</button>
+          <button class="btn ghost" id="reset" type="button">Restaurar exemplos</button>
+        </div>
+        <p class="note">Margem de lucro é a parte do preço de venda que fica com você, depois de custos e taxas. Preço = custo ÷ (1 − margem − taxas).</p>
+      </div>
+    </section>
+
+    <form class="inputs" id="form" onsubmit="return false"></form>
+  </div>
+</div>
+<div id="tip" role="tooltip"></div>
+
+<div class="wrap panel" id="tab-orc" hidden>
+  <div class="two">
+    <section class="card">
+      <div class="sec">
+        <h2>Monte o orçamento</h2>
+        <p class="sub" style="margin:0">Escolha produtos salvos e as quantidades. Os preços usam os custos gerais atuais.</p>
+        <div class="addrow">
+          <div class="ctl"><select id="oSel" aria-label="Produto salvo"></select></div>
+          <button class="btn" id="oAdd" type="button">Adicionar</button>
+        </div>
+        <div class="scroll">
+          <table class="ptable">
+            <thead><tr><th>Produto</th><th>Qtd</th><th>Unitário</th><th>Subtotal</th><th></th></tr></thead>
+            <tbody id="oRows"></tbody>
+          </table>
+        </div>
+        <div class="fields">
+          <div class="field"><label for="oCliente">Cliente</label><div class="ctl"><input id="oCliente" type="text" maxlength="80" autocomplete="off" placeholder="Nome do cliente" style="font-family:var(--f-body)"></div></div>
+          <div class="field"><label for="oDesc">Desconto</label><div class="ctl"><input id="oDesc" type="number" inputmode="decimal" min="0" max="90" step="1" value="0"><span class="u">%</span></div></div>
+          <div class="field"><label for="oFrete">Frete</label><div class="ctl"><input id="oFrete" type="number" inputmode="decimal" min="0" step="1" value="0"><span class="u">R$</span></div></div>
+          <div class="field"><label for="oVal">Validade</label><div class="ctl"><input id="oVal" type="number" inputmode="numeric" min="0" step="1" value="7"><span class="u">dias</span></div></div>
+        </div>
+      </div>
+    </section>
+    <div class="stack">
+      <section class="card">
+        <div class="sec">
+          <h2>Texto para enviar</h2>
+          <pre class="pre" id="oTxt"></pre>
+          <div><button class="btn" id="oCopy" type="button">Copiar texto</button></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="sec">
+          <h2>Só para você</h2>
+          <table class="mini">
+            <tbody>
+              <tr><td>Total dos itens, com desconto</td><td id="oiItens"></td></tr>
+              <tr><td>Custos, incluindo seu pagamento</td><td id="oiCusto"></td></tr>
+              <tr><td>Taxas e impostos</td><td id="oiTax"></td></tr>
+              <tr class="total"><td>Lucro do pedido</td><td id="oiLuc"></td></tr>
+              <tr><td>Margem real</td><td id="oiMar"></td></tr>
+            </tbody>
+          </table>
+          <p class="warn" id="oWarn" hidden>Com esse desconto o pedido dá prejuízo. Reduza o desconto ou aumente os preços.</p>
+          <p class="hint" style="margin:0">O frete entra no total do cliente, mas não no seu lucro: o cálculo considera que você repassa o valor. A taxa fixa por venda é cobrada uma vez por pedido.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<div class="wrap panel" id="tab-vend" hidden>
+  <div class="two">
+    <div class="stack">
+      <section class="card">
+        <div class="sec">
+          <h2>Meta do mês</h2>
+          <div class="fields">
+            <div class="field"><label for="vMeta">Quanto quero ganhar</label><div class="ctl"><input id="vMeta" type="number" inputmode="decimal" min="0" step="50" value="1000"><span class="u">R$/mês</span></div></div>
+            <div class="field"><label for="vConta">A meta conta</label><div class="ctl"><select id="vConta"><option value="pl">Meu pagamento + lucro</option><option value="p">Só meu pagamento</option></select></div></div>
+            <div class="field"><label for="vHoras">Horas de trabalho por mês</label><div class="ctl"><input id="vHoras" type="number" inputmode="decimal" min="0" step="1" value="35"><span class="u">h</span></div><span class="hint">Seu tempo manual, sem contar a impressora</span></div>
+          </div>
+          <div class="meter" id="vMeter" role="img" aria-label="Progresso da meta"><i id="vBar"></i></div>
+          <div id="vProg" style="font-weight:600"></div>
+          <h2>Caixinhas do mês</h2>
+          <div class="boxes">
+            <div class="box"><div class="bt">Reposição</div><div class="bv" id="vb-rep"></div><div class="bd">Separe para comprar material de novo.</div></div>
+            <div class="box"><div class="bt">Seu pagamento</div><div class="bv" id="vb-mo"></div><div class="bd">O que vale o seu tempo.</div></div>
+            <div class="box luc"><div class="bt">Lucro</div><div class="bv" id="vb-luc"></div><div class="bd">Reinvista, guarde ou retire.</div></div>
+          </div>
+          <div class="tax-line"><span>Taxas e impostos do mês</span><span id="vb-tax"></span></div>
+          <div class="tax-line"><span>Faturamento do mês</span><span id="vb-fat"></span></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="sec">
+          <h2>Registrar venda</h2>
+          <div class="fields">
+            <div class="field"><label for="vSel">Produto</label><div class="ctl"><select id="vSel"></select></div></div>
+            <div class="field"><label for="vQtd">Quantidade</label><div class="ctl"><input id="vQtd" type="number" inputmode="numeric" min="1" step="1" value="1"><span class="u">un</span></div></div>
+            <div class="field"><label for="vPreco">Preço cobrado, por peça</label><div class="ctl"><input id="vPreco" type="number" inputmode="decimal" min="0" step="0.5"><span class="u">R$</span></div><span class="hint">Já vem com o preço calculado. Mude se vendeu por outro valor.</span></div>
+            <div class="field"><label for="vData">Data</label><div class="ctl"><input id="vData" type="date"></div></div>
+          </div>
+          <div><button class="btn" id="vAdd" type="button">Registrar venda</button></div>
+          <p class="hint" id="vMsg" role="status" style="margin:0"></p>
+        </div>
+      </section>
+    </div>
+    <div class="stack">
+      <section class="card">
+        <div class="sec">
+          <h2>Vendas do mês</h2>
+          <div class="fields"><div class="field"><label for="vMes">Mês</label><div class="ctl"><input id="vMes" type="month" placeholder="AAAA-MM"></div></div></div>
+          <div class="scroll">
+            <table class="ptable">
+              <thead><tr><th>Data</th><th>Produto</th><th>Qtd</th><th>Preço</th><th>Seu ganho</th><th></th></tr></thead>
+              <tbody id="vRows"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="vNote" style="margin:0"></p>
+        </div>
+      </section>
+      <section class="card">
+        <div class="sec">
+          <h2>Peças para bater a meta</h2>
+          <p class="sub" style="margin:0">Se você vendesse só um produto, quantas peças por mês seriam necessárias.</p>
+          <div class="scroll">
+            <table class="ptable">
+              <thead><tr><th>Produto</th><th>Ganho por peça</th><th>Peças por mês</th><th>Impressão no mês</th><th>Seu trabalho no mês</th></tr></thead>
+              <tbody id="vMetaRows"></tbody>
+            </table>
+          </div>
+          <p class="hint" id="vHint" style="margin:0"></p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+var SECTIONS = [
+  { t: "Peça", s: "Números que o Bambu Studio mostra depois de fatiar.", f: [
+    { id: "peso", l: "Peso total", u: "g", v: 85, min: 0, step: 1, hint: "Peça mais suportes" },
+    { id: "purga", l: "Purga e torre de cor", u: "g", v: 0, min: 0, step: 1, hint: "Só em impressão multicor" },
+    { id: "h", l: "Tempo, horas", u: "h", v: 4, min: 0, step: 1 },
+    { id: "min", l: "Tempo, minutos", u: "min", v: 30, min: 0, step: 5 },
+    { id: "n", l: "Peças por impressão", u: "un", v: 1, min: 1, step: 1, hint: "Quantas saem da mesma placa" }
+  ]},
+  { t: "Material e acabamento", s: "Escolha um tipo para preencher um preço de exemplo e ajuste ao que você paga.", mat: true, f: [
+    { id: "precoKg", l: "Preço do filamento", u: "R$/kg", v: 100, min: 0, step: 1 },
+    { id: "minManual", l: "Tempo manual por impressão", u: "min", v: 15, min: 0, step: 5, hint: "Retirar, tirar suportes, lixar" },
+    { id: "emb", l: "Embalagem por peça", u: "R$", v: 3, min: 0, step: 0.5 }
+  ]},
+  { t: "Impressora", g: true, s: "Custo da máquina diluído a cada hora de impressão.", f: [
+    { id: "precoMaq", l: "Preço da impressora", u: "R$", v: 2500, min: 0, step: 50 },
+    { id: "vida", l: "Vida útil estimada", u: "h", v: 4000, min: 1, step: 100 },
+    { id: "manut", l: "Manutenção e peças", u: "R$/h", v: 0.25, min: 0, step: 0.05, hint: "Bico, correias, mesa" },
+    { id: "watts", l: "Consumo médio", u: "W", v: 100, min: 0, step: 5, hint: "Estimativa; um medidor de tomada dá o valor real" },
+    { id: "tarifa", l: "Tarifa de energia", u: "R$/kWh", v: 0.9, min: 0, step: 0.05, hint: "Veja na sua conta de luz" }
+  ]},
+  { t: "Seu trabalho e falhas", g: true, s: "Seu valor por hora e a taxa de impressões perdidas.", f: [
+    { id: "horaMO", l: "Valor da sua hora", u: "R$/h", v: 25, min: 0, step: 1 },
+    { id: "falha", l: "Taxa de falhas", u: "%", v: 8, min: 0, step: 1, hint: "Impressões perdidas" }
+  ]},
+  { t: "Venda", g: true, s: "Margem desejada e o que o canal de venda cobra.", sell: true, f: [
+    { id: "margem", l: "Margem de lucro", u: "%", v: 40, min: 0, max: 90, step: 1 },
+    { id: "taxa", l: "Taxas e impostos", u: "% do preço", v: 10, min: 0, max: 90, step: 1, hint: "Comissão do marketplace, imposto" },
+    { id: "fixa", l: "Taxa fixa por venda", u: "R$", v: 0, min: 0, step: 0.5 }
+  ]}
+];
+var MATS = [ { n: "PLA", p: 100 }, { n: "PETG", p: 110 }, { n: "TPU", p: 150 } ];
+var KEY = "precificacao-a1mini-v1";
+var brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+var pct = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 1 });
+var $ = function (id) { return document.getElementById(id); };
+var DEFAULTS = {};
+SECTIONS.forEach(function (s) { s.f.forEach(function (f) { DEFAULTS[f.id] = f.v; }); });
+var GENERAL_KEYS = [], PRODUCT_KEYS = [];
+SECTIONS.forEach(function (s) { s.f.forEach(function (f) { (s.g ? GENERAL_KEYS : PRODUCT_KEYS).push(f.id); }); });
+
+function load() {
+  try { var o = JSON.parse(localStorage.getItem(KEY) || "null"); if (o) return Object.assign({}, DEFAULTS, o); } catch (e) {}
+  return Object.assign({}, DEFAULTS);
+}
+function save(v) { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch (e) {} }
+
+var state = load();
+
+function build() {
+  var form = $("form"), html = '<fieldset><legend>Produto</legend><p class="sub">Dê um nome para guardar os dados desta peça. O preço dela sempre usa os custos gerais atuais.</p><div class="field"><label for="nome">Nome do produto</label><div class="ctl"><input id="nome" type="text" maxlength="80" autocomplete="off" placeholder="Ex.: Suporte de fone de ouvido"></div></div><div class="pbtns"><button class="btn" id="save" type="button">Salvar produto</button><button class="btn ghost" id="novo" type="button">Novo produto</button></div><p class="hint" id="saveMsg" role="status" style="margin:8px 0 0"></p></fieldset>';
+  SECTIONS.forEach(function (s) {
+    if (s.g && s === SECTIONS.filter(function (x) { return x.g; })[0]) {
+      html += '<details class="card gen" id="gen" open><summary><span>Custos gerais</span><span class="count">valem para todos os produtos</span></summary><div class="genbody"><p class="hint">Preencha uma vez. Ao mudar um valor aqui, o preço de todos os produtos salvos é recalculado.</p>';
+    }
+    html += '<fieldset><legend>' + s.t + '</legend><p class="sub">' + s.s + '</p>';
+    if (s.mat) {
+      html += '<div class="seg" id="mats">';
+      MATS.forEach(function (m, i) { html += '<button type="button" data-i="' + i + '" aria-pressed="false">' + m.n + '</button>'; });
+      html += '</div>';
+    }
+    html += '<div class="fields">';
+    s.f.forEach(function (f) {
+      html += '<div class="field"><label for="' + f.id + '">' + f.l + '</label><div class="ctl"><input id="' + f.id + '" type="number" inputmode="decimal" min="' + f.min + '"' +
+        (f.max != null ? ' max="' + f.max + '"' : '') + ' step="' + f.step + '" value="' + state[f.id] + '"><span class="u">' + f.u + '</span></div>' +
+        (f.hint ? '<span class="hint">' + f.hint + '</span>' : '') + '</div>';
+    });
+    html += '</div>';
+    if (s.sell) html += '<input id="margemRange" type="range" min="0" max="90" step="1" aria-label="Ajustar margem de lucro" value="' + state.margem + '">';
+    html += '</fieldset>';
+  });
+  html += '<p class="hint" id="genMsg" role="status" style="margin:0"></p></div></details>';
+  form.innerHTML = html;
+  $("nome").value = state.nome || "";
+  form.addEventListener("input", function (e) {
+    var t = e.target;
+    if (t.id === "nome") { state.nome = t.value; save(state); updateSaveLabel(); return; }
+    if (t.id === "margemRange") { $("margem").value = t.value; }
+    if (DEFAULTS.hasOwnProperty(t.id) || t.id === "margemRange") { readAll(); if (t.id === "margem") $("margemRange").value = t.value; render(); if (GENERAL_KEYS.indexOf(t.id) >= 0 || t.id === "margemRange") onGenChange(); }
+  });
+  $("mats").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    $("precoKg").value = MATS[+b.dataset.i].p; readAll(); render();
+  });
+}
+
+function readAll() {
+  Object.keys(DEFAULTS).forEach(function (k) {
+    var el = $(k), x = parseFloat(el.value);
+    state[k] = isFinite(x) && x >= 0 ? x : 0;
+  });
+  state.n = Math.max(1, Math.round(state.n));
+  state.vida = Math.max(1, state.vida);
+}
+
+function calc(v, margem) {
+  var horas = v.h + v.min / 60, n = v.n;
+  var fil = (v.peso + v.purga) / 1000 * v.precoKg;
+  var en = horas * v.watts / 1000 * v.tarifa;
+  var dep = horas * (v.precoMaq / v.vida + v.manut);
+  var fal = (fil + en + dep) * v.falha / 100;
+  var mo = v.minManual / 60 * v.horaMO;
+  var lote = fil + en + dep + fal + mo + v.emb * n;
+  var custo = lote / n;
+  var den = 1 - margem / 100 - v.taxa / 100;
+  var ok = den > 0.0001;
+  var preco = ok ? (custo + v.fixa) / den : 0;
+  return {
+    ok: ok, horas: horas, preco: preco, custo: custo,
+    parts: { fil: fil / n, en: en / n, dep: dep / n, fal: fal / n, mo: mo / n, emb: v.emb, tax: ok ? preco * v.taxa / 100 + v.fixa : 0, luc: ok ? preco * margem / 100 : 0 }
+  };
+}
+
+var ITEMS = [
+  ["fil", "Filamento", "--s-fil"], ["en", "Energia", "--s-en"], ["dep", "Máquina (depreciação e manutenção)", "--s-dep"],
+  ["fal", "Falhas", "--s-fal"], ["mo", "Mão de obra", "--s-mo"], ["emb", "Embalagem", "--s-emb"],
+  ["tax", "Taxas e impostos", "--s-tax"], ["luc", "Seu lucro", "--s-luc"]
+];
+var last = null;
+
+function render() {
+  save(state);
+  var r = calc(state, state.margem); last = r;
+  $("warn").hidden = r.ok;
+  if (!r.ok) $("warn").textContent = "Margem mais taxas chegam a 100% ou mais. Reduza um dos dois para ver o preço.";
+  $("price").textContent = r.ok ? brl.format(r.preco) : "—";
+  $("lote").textContent = r.ok && state.n > 1 ? "Placa com " + state.n + " peças: " + brl.format(r.preco * state.n) : "";
+  $("s-custo").textContent = brl.format(r.custo);
+  $("s-lucro").textContent = r.ok ? brl.format(r.parts.luc) : "—";
+  var hPeca = r.horas / state.n;
+  $("s-hora").textContent = r.ok && hPeca > 0 ? brl.format(r.preco / hPeca) : "—";
+
+  var bar = "", rows = "";
+  ITEMS.forEach(function (it) {
+    var val = r.parts[it[0]], share = r.ok && r.preco > 0 ? val / r.preco : 0;
+    if (r.ok && val > 0) bar += '<div class="seg-b" tabindex="0" data-t="' + it[1] + ': ' + brl.format(val) + ' (' + pct.format(share * 100) + '%)" style="flex:' + val + ' 1 0;background:var(' + it[2] + ')"></div>';
+    rows += '<tr><td><span class="sw" style="background:var(' + it[2] + ')"></span>' + it[1] + '</td><td>' + brl.format(val) + '</td><td>' + (r.ok ? pct.format(share * 100) + '%' : '—') + '</td></tr>';
+  });
+  rows += '<tr class="total"><td>Preço de venda</td><td>' + (r.ok ? brl.format(r.preco) : "—") + '</td><td>' + (r.ok ? "100%" : "—") + '</td></tr>';
+  $("bar").innerHTML = bar; $("rows").innerHTML = rows;
+
+  var pp = r.parts, rep = pp.fil + pp.en + pp.dep + pp.fal + pp.emb;
+  var cx = function (id, val) {
+    $(id).textContent = r.ok ? brl.format(val) : "—";
+    $(id + "-p").textContent = r.ok && r.preco > 0 ? pct.format(val / r.preco * 100) + "% do preço" : "";
+  };
+  cx("b-rep", rep); cx("b-mo", pp.mo); cx("b-luc", pp.luc);
+  $("b-tax").textContent = r.ok ? brl.format(pp.tax) : "—";
+
+  var rmin = calc(state, 0), pr0 = r.ok ? r.preco : 0;
+  $("minTxt").textContent = rmin.ok
+    ? "Preço mínimo: " + brl.format(rmin.preco) + ". Com ele o lucro é zero: você ainda se paga e repõe o material, mas não sobra nada para crescer. Abaixo disso você perde dinheiro."
+    : "Ajuste a margem e as taxas para ver o preço mínimo.";
+  var rd = $("rdRows"); rd.textContent = "";
+  if (r.ok && pr0 > 0) {
+    var o90 = Math.floor(pr0) + 0.9; if (o90 < pr0 - 0.0001) o90 += 1;
+    [["Calculado", pr0], ["Redondo ,90", o90], ["Redondo inteiro", Math.ceil(pr0 - 0.0001)]].forEach(function (o) {
+      var tx = o[1] * state.taxa / 100 + state.fixa, lc = o[1] - tx - r.custo, tr = document.createElement("tr");
+      [o[0], brl.format(o[1]), brl.format(lc), pct.format(lc / o[1] * 100) + "%"].forEach(function (txt) {
+        var c = document.createElement("td"); c.textContent = txt; tr.appendChild(c);
+      });
+      rd.appendChild(tr);
+    });
+  }
+
+  var ms = [20, 30, 40, 50, 60], mp = "<td>Preço</td>", ml = "<td>Lucro</td>";
+  ms.forEach(function (m, i) {
+    var c = calc(state, m);
+    $("m" + (i + 1)).textContent = m + "%";
+    mp += '<td>' + (c.ok ? brl.format(c.preco) : "—") + '</td>';
+    ml += '<td>' + (c.ok ? brl.format(c.parts.luc) : "—") + '</td>';
+  });
+  $("mp").innerHTML = mp; $("ml").innerHTML = ml;
+  [1, 2, 3, 4, 5].forEach(function (i) {
+    var on = ms[i - 1] === Math.round(state.margem);
+    $("m" + i).style.fontWeight = on ? "600" : "500";
+    $("m" + i).style.color = on ? "var(--ink)" : "";
+  });
+  var curCol = ms.indexOf(Math.round(state.margem));
+  Array.prototype.forEach.call(document.querySelectorAll(".mtab td"), function (td) { td.style.background = ""; });
+  if (curCol >= 0) {
+    [$("mp"), $("ml")].forEach(function (tr) { tr.children[curCol + 1].style.background = "var(--layer)"; tr.children[curCol + 1].style.fontWeight = "600"; });
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll("#mats button"), function (b) {
+    b.setAttribute("aria-pressed", String(MATS[+b.dataset.i].p === state.precoKg));
+  });
+  $("margemRange").value = state.margem;
+}
+
+/* tooltip das barras */
+var tip = $("tip");
+document.addEventListener("pointermove", function (e) {
+  var t = e.target.closest && e.target.closest(".seg-b");
+  if (!t) { tip.style.display = "none"; return; }
+  tip.textContent = t.dataset.t; tip.style.display = "block";
+  var w = tip.offsetWidth, x = Math.min(e.clientX + 12, window.innerWidth - w - 8);
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = (e.clientY + 16) + "px";
+});
+document.addEventListener("focusin", function (e) {
+  var t = e.target.closest && e.target.closest(".seg-b"); if (!t) return;
+  var b = t.getBoundingClientRect(); tip.textContent = t.dataset.t; tip.style.display = "block";
+  tip.style.left = Math.max(8, Math.min(b.left, window.innerWidth - tip.offsetWidth - 8)) + "px"; tip.style.top = (b.bottom + 8) + "px";
+});
+document.addEventListener("focusout", function () { tip.style.display = "none"; });
+
+/* resumo */
+function summary() {
+  var r = last, L = [];
+  L.push(state.nome ? state.nome + " (Bambu Lab A1 Mini)" : "Preço de impressão 3D (Bambu Lab A1 Mini)");
+  L.push("Peso: " + state.peso + " g · Tempo: " + state.h + " h " + state.min + " min · Peças na placa: " + state.n);
+  ITEMS.forEach(function (it) { L.push(it[1] + ": " + brl.format(r.parts[it[0]])); });
+  L.push("Preço de venda por peça: " + (r.ok ? brl.format(r.preco) : "—") + " (margem " + state.margem + "%)");
+  return L.join("\n");
+}
+$("copy").addEventListener("click", function () {
+  var btn = $("copy"), txt = summary();
+  function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = "Copiar resumo"; }, 1800); }
+  function fallback() {
+    var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+    document.body.removeChild(ta); done(ok ? "Resumo copiado" : "Não foi possível copiar");
+  }
+  try { navigator.clipboard.writeText(txt).then(function () { done("Resumo copiado"); }, fallback); } catch (e) { fallback(); }
+});
+$("reset").addEventListener("click", function () {
+  Object.keys(DEFAULTS).forEach(function (k) { $(k).value = DEFAULTS[k]; }); setTimeout(onGenChange, 0);
+  readAll(); render();
+});
+
+/* ---------- histórico de produtos ---------- */
+var PKEY = "precificacao-a1mini-produtos-v1";
+var items = [], mode = "loading", col = null, pendingDel = null, delTimer = null, msgTimer = null;
+
+function norm(s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim(); }
+function slug(s) { return norm(s).replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80); }
+function setMsg(t, err) {
+  var m = $("saveMsg"); m.textContent = t; m.style.color = err ? "var(--danger)" : "";
+  clearTimeout(msgTimer); if (t) msgTimer = setTimeout(function () { m.textContent = ""; }, 4000);
+}
+function updateSaveLabel() {
+  var id = slug(state.nome), ex = items.some(function (i) { return i.id === id; });
+  $("save").textContent = ex ? "Atualizar produto" : "Salvar produto";
+}
+function pickProduct(inp) { var o = {}; PRODUCT_KEYS.forEach(function (k) { o[k] = inp[k] != null ? (Number(inp[k]) || 0) : DEFAULTS[k]; }); return o; }
+function fmtTempo(i) { var h = i.h || 0, m = i.min || 0; return h + "h" + (m < 10 ? "0" : "") + m; }
+
+function renderList() {
+  var q = norm($("busca").value), ul = $("hlist");
+  var arr = items.filter(function (i) { return norm(i.nome).indexOf(q) >= 0; })
+    .sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), "pt-BR"); });
+  if (window.onItemsChanged) setTimeout(window.onItemsChanged, 0);
+  $("hcount").textContent = items.length ? items.length + (items.length === 1 ? " produto" : " produtos") : "";
+  ul.textContent = "";
+  if (!arr.length) {
+    var e = document.createElement("li"); e.className = "empty";
+    e.textContent = mode === "loading" ? "Carregando produtos..." : items.length ? "Nada encontrado para essa busca." : "Nenhum produto salvo ainda. Dê um nome à peça em Produto e clique em Salvar produto.";
+    ul.appendChild(e);
+  }
+  arr.forEach(function (it) {
+    var inp = it.inputs || {};
+    var li = document.createElement("li"); li.className = "hrow";
+    var open = document.createElement("button"); open.type = "button"; open.className = "hopen";
+    var left = document.createElement("span"); left.className = "hl";
+    var a = document.createElement("span"); a.className = "hn"; a.textContent = it.nome;
+    var b = document.createElement("span"); b.className = "hm";
+    b.textContent = (inp.peso || 0) + " g · " + fmtTempo(inp) + (inp.n > 1 ? " · " + inp.n + " peças" : "");
+    var c = document.createElement("span"); c.className = "hp";
+    var rr = calc(Object.assign({}, state, pickProduct(inp)), state.margem);
+    c.textContent = rr.ok ? brl.format(rr.preco) : "—";
+    left.appendChild(a); left.appendChild(b); open.appendChild(left); open.appendChild(c);
+    open.addEventListener("click", function () { loadItem(it); });
+    var del = document.createElement("button"); del.type = "button"; del.className = "hdel";
+    del.textContent = pendingDel === it.id ? "Confirmar" : "Excluir";
+    del.setAttribute("aria-label", (pendingDel === it.id ? "Confirmar exclusão de " : "Excluir ") + it.nome);
+    del.addEventListener("click", function () { removeItem(it); });
+    li.appendChild(open); li.appendChild(del); ul.appendChild(li);
+  });
+  $("hnote").textContent = mode === "db" ? "Preços calculados com os custos gerais atuais. Histórico guardado nesta página, em qualquer aparelho pelo mesmo link." : mode === "local" ? "Histórico guardado só neste navegador." : "";
+  updateSaveLabel();
+}
+
+function loadItem(it) {
+  var inp = it.inputs || {};
+  PRODUCT_KEYS.forEach(function (k) { $(k).value = inp[k] != null ? inp[k] : DEFAULTS[k]; });
+  state.nome = it.nome; $("nome").value = it.nome;
+  readAll(); render(); updateSaveLabel();
+  setMsg("Produto carregado: " + it.nome);
+  var lay = document.querySelector(".layout"); if (lay && lay.scrollIntoView) lay.scrollIntoView();
+}
+
+function readLocal() { try { var a = JSON.parse(localStorage.getItem(PKEY) || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function writeLocal() { try { localStorage.setItem(PKEY, JSON.stringify(items)); } catch (e) {} }
+function upsertLocal(id, entry) {
+  var rec = Object.assign({ id: id }, entry), i = items.findIndex(function (x) { return x.id === id; });
+  if (i >= 0) items[i] = rec; else items.push(rec);
+  writeLocal(); renderList();
+}
+
+async function saveItem() {
+  var nome = (state.nome || "").trim(), id = slug(nome);
+  if (!id) { setMsg("Digite um nome com letras ou números para salvar.", true); return; }
+  readAll();
+  var r = calc(state, state.margem);
+  if (!r.ok) { setMsg("Ajuste a margem e as taxas antes de salvar.", true); return; }
+  var inputs = {}; PRODUCT_KEYS.forEach(function (k) { inputs[k] = state[k]; });
+  var old = items.filter(function (i) { return i.id === id; })[0], now = new Date().toISOString();
+  var entry = {
+    nome: nome, inputs: inputs,
+        criadoEm: (old && old.criadoEm) || now, atualizadoEm: now
+  };
+  var btn = $("save"); btn.disabled = true;
+  try {
+    if (mode === "db") await col.doc(id).set(entry); else upsertLocal(id, entry);
+    setMsg(old ? "Produto atualizado." : "Produto salvo.");
+  } catch (e) {
+    setMsg(e && e.code === "invalid_argument" ? "Você não tem permissão para gravar neste histórico." : "Não foi possível salvar. Tente de novo.", true);
+  }
+  btn.disabled = false; updateSaveLabel();
+}
+
+async function removeItem(it) {
+  if (pendingDel !== it.id) {
+    pendingDel = it.id; clearTimeout(delTimer);
+    delTimer = setTimeout(function () { pendingDel = null; renderList(); }, 3000);
+    renderList(); return;
+  }
+  pendingDel = null; clearTimeout(delTimer);
+  try {
+    if (mode === "db") await col.doc(it.id).delete();
+    else { items = items.filter(function (x) { return x.id !== it.id; }); writeLocal(); renderList(); }
+    setMsg("Produto excluído.");
+  } catch (e) { setMsg("Não foi possível excluir.", true); renderList(); }
+}
+
+var genTimer = null, gmTimer = null, cfgDoc = null, genApplied = false;
+function setGenMsg(t, err) {
+  var m = $("genMsg"); if (!m) return;
+  m.textContent = t; m.style.color = err ? "var(--danger)" : "";
+  clearTimeout(gmTimer); if (t) gmTimer = setTimeout(function () { m.textContent = ""; }, 4000);
+}
+function genValues() { var o = {}; GENERAL_KEYS.forEach(function (k) { o[k] = state[k]; }); return o; }
+function onGenChange() { renderList(); clearTimeout(genTimer); genTimer = setTimeout(saveGen, 700); }
+async function saveGen() {
+  if (mode !== "db" || !cfgDoc) { setGenMsg("Custos gerais guardados neste navegador."); return; }
+  try {
+    await cfgDoc.set(Object.assign(genValues(), { atualizadoEm: new Date().toISOString() }));
+    setGenMsg("Custos gerais salvos. Os preços dos produtos foram recalculados.");
+  } catch (e) { setGenMsg("Não foi possível salvar os custos gerais.", true); }
+}
+function applyGen(d) {
+  var ae = document.activeElement, box = $("gen");
+  if (genApplied && ae && box && box.contains(ae)) return;
+  var changed = false;
+  GENERAL_KEYS.forEach(function (k) { if (typeof d[k] === "number" && d[k] !== state[k]) { $(k).value = d[k]; changed = true; } });
+  genApplied = true;
+  if (changed) { readAll(); render(); renderList(); }
+}
+function useLocal() { mode = "local"; items = readLocal(); renderList(); }
+async function initStore() {
+  renderList();
+  var db = null;
+  try { if (window.claude && window.claude.use) db = await window.claude.use("db"); } catch (e) {}
+  if (!db) { useLocal(); return; }
+  try {
+    col = db.collection("produtos"); mode = "db";
+    cfgDoc = db.doc("config/geral");
+    cfgDoc.onSnapshot(function (s) { if (s.exists && !s.metadata.hasPendingWrites) applyGen(s.data()); }, function () {});
+    col.onSnapshot(function (snap) {
+      items = snap.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); });
+      renderList();
+    }, function () { useLocal(); });
+  } catch (e) { useLocal(); }
+}
+
+build(); readAll(); state.nome = state.nome || ""; render();
+$("save").addEventListener("click", saveItem);
+$("novo").addEventListener("click", function () {
+  state.nome = ""; $("nome").value = ""; save(state); updateSaveLabel();
+  setMsg("Nome limpo. Os custos continuam, ajuste peso e tempo."); $("nome").focus();
+});
+$("nome").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); saveItem(); } });
+$("busca").addEventListener("input", renderList);
+initStore();
+</script>
+<script>
+(function () {
+  var TABKEY = "precificacao-a1mini-aba-v1", OKEY = "precificacao-a1mini-orc-v1", MKEY = "precificacao-a1mini-meta-v1", VKEY = "precificacao-a1mini-vendas-v1";
+  function r2(x) { return Math.round(x * 100) / 100; }
+  function num(id) { var x = parseFloat($(id).value); return isFinite(x) && x >= 0 ? x : 0; }
+  function lsGet(k, d) { try { var v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  function ymd(d) { d = d || new Date(); var m = d.getMonth() + 1, dd = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (dd < 10 ? "0" : "") + dd; }
+  function fdata(s) { var p = String(s || "").split("-"); return p.length === 3 ? p[2] + "/" + p[1] : String(s || ""); }
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function td(txt, cls) { return el("td", cls || "", txt); }
+  function sorted() { return items.slice().sort(function (a, b) { return String(a.nome).localeCompare(String(b.nome), "pt-BR"); }); }
+  function itemById(id) { return items.filter(function (i) { return i.id === id; })[0]; }
+  function priceOf(it) { return calc(Object.assign({}, state, pickProduct(it.inputs || {})), state.margem); }
+  function copyText(txt, btn, label) {
+    function done(m) { btn.textContent = m; setTimeout(function () { btn.textContent = label; }, 1800); }
+    function fallback() {
+      var ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta); done(ok ? "Texto copiado" : "Não foi possível copiar");
+    }
+    try { navigator.clipboard.writeText(txt).then(function () { done("Texto copiado"); }, fallback); } catch (e) { fallback(); }
+  }
+
+  /* ---------- abas ---------- */
+  function showTab(t) {
+    lsSet(TABKEY, t);
+    Array.prototype.forEach.call(document.querySelectorAll("#tabs button"), function (b) { b.setAttribute("aria-pressed", String(b.dataset.tab === t)); });
+    $("hist").hidden = t !== "calc"; document.querySelector(".layout").hidden = t !== "calc";
+    $("tab-orc").hidden = t !== "orc"; $("tab-vend").hidden = t !== "vend";
+    refresh();
+  }
+  $("tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) showTab(b.dataset.tab); });
+
+  function fillSelects() {
+    ["oSel", "vSel"].forEach(function (id) {
+      var s = $(id), cur = s.value, arr = sorted(); s.textContent = "";
+      if (!arr.length) { var o = el("option", "", "Nenhum produto salvo"); o.value = ""; s.appendChild(o); s.disabled = true; return; }
+      s.disabled = false;
+      arr.forEach(function (it) { var o2 = el("option", "", it.nome); o2.value = it.id; s.appendChild(o2); });
+      if (cur && itemById(cur)) s.value = cur;
+    });
+  }
+  var vTouched = false;
+  function fillPrice() {
+    var it = itemById($("vSel").value);
+    if (!it) { $("vPreco").value = ""; return; }
+    var pr = priceOf(it); $("vPreco").value = pr.ok ? r2(pr.preco) : "";
+  }
+  $("vPreco").addEventListener("input", function () { vTouched = true; });
+  $("vSel").addEventListener("change", function () { vTouched = false; fillPrice(); });
+  function refresh() { fillSelects(); if (!vTouched) fillPrice(); renderOrc(); renderVend(); }
+  window.onItemsChanged = refresh;
+
+  /* ---------- orçamento ---------- */
+  var O = Object.assign({ cliente: "", desc: 0, frete: 0, val: 7, linhas: [] }, lsGet(OKEY, {}));
+  if (!Array.isArray(O.linhas)) O.linhas = [];
+  $("oCliente").value = O.cliente || ""; $("oDesc").value = O.desc; $("oFrete").value = O.frete; $("oVal").value = O.val;
+  function saveO() { lsSet(OKEY, O); }
+  ["oCliente", "oDesc", "oFrete", "oVal"].forEach(function (id) {
+    $(id).addEventListener("input", function () {
+      O.cliente = $("oCliente").value; O.desc = Math.min(90, num("oDesc")); O.frete = num("oFrete"); O.val = Math.round(num("oVal"));
+      saveO(); renderOrc();
+    });
+  });
+  $("oAdd").addEventListener("click", function () {
+    var id = $("oSel").value; if (!id) return;
+    var l = O.linhas.filter(function (x) { return x.id === id; })[0];
+    if (l) l.qtd += 1; else O.linhas.push({ id: id, qtd: 1 });
+    saveO(); renderOrc();
+  });
+  $("oCopy").addEventListener("click", function () { copyText($("oTxt").textContent, $("oCopy"), "Copiar texto"); });
+
+  function renderOrc() {
+    if ($("tab-orc").hidden) return;
+    var body = $("oRows"); body.textContent = "";
+    var sub = 0, custo = 0, lines = [];
+    O.linhas.forEach(function (l, idx) {
+      var it = itemById(l.id), tr = el("tr");
+      var rm = el("button", "ox", "Remover"); rm.type = "button";
+      rm.addEventListener("click", function () { O.linhas.splice(idx, 1); saveO(); renderOrc(); });
+      if (!it) {
+        tr.appendChild(td("Produto não encontrado")); tr.appendChild(td("")); tr.appendChild(td("—")); tr.appendChild(td("—"));
+      } else {
+        var pr = priceOf(it), unit = pr.ok ? r2(pr.preco) : 0, s = r2(unit * l.qtd);
+        var q = el("input"); q.type = "number"; q.min = "1"; q.step = "1"; q.value = l.qtd; q.setAttribute("aria-label", "Quantidade de " + it.nome);
+        q.addEventListener("change", function () { l.qtd = Math.max(1, Math.round(parseFloat(q.value) || 1)); saveO(); renderOrc(); });
+        var wrap = el("div", "ctl"); wrap.style.width = "76px"; wrap.style.marginLeft = "auto"; wrap.appendChild(q);
+        var qc = td(""); qc.appendChild(wrap);
+        tr.appendChild(td(it.nome)); tr.appendChild(qc); tr.appendChild(td(brl.format(unit))); tr.appendChild(td(brl.format(s)));
+        sub += s; custo += pr.ok ? pr.custo * l.qtd : 0;
+        lines.push("- " + l.qtd + " x " + it.nome + ": " + brl.format(unit) + " cada = " + brl.format(s));
+      }
+      var rc = td(""); rc.appendChild(rm); tr.appendChild(rc); body.appendChild(tr);
+    });
+    function addTot(label, val, strong) {
+      var tr = el("tr", strong ? "total" : ""), a = td(label), b = td(val); a.colSpan = 3; b.colSpan = 2;
+      tr.appendChild(a); tr.appendChild(b); body.appendChild(tr);
+    }
+    var d = O.desc / 100, desconto = r2(sub * d), itens = r2(sub - desconto), total = r2(itens + O.frete);
+    if (!lines.length && !O.linhas.length) {
+      var er = el("tr"), ec = td("Adicione produtos salvos para montar o orçamento."); ec.colSpan = 5; er.appendChild(ec); body.appendChild(er);
+    }
+    if (lines.length) {
+      if (O.desc > 0) { addTot("Subtotal", brl.format(sub)); addTot("Desconto (" + pct.format(O.desc) + "%)", "-" + brl.format(desconto)); }
+      if (O.frete > 0) addTot("Frete", brl.format(O.frete));
+      addTot("Total", brl.format(total), true);
+    }
+    var taxas = itens * state.taxa / 100 + (lines.length ? state.fixa : 0);
+    var lucro = itens - taxas - custo, mar = itens > 0 ? lucro / itens * 100 : 0;
+    $("oiItens").textContent = brl.format(itens); $("oiCusto").textContent = brl.format(custo); $("oiTax").textContent = brl.format(taxas);
+    $("oiLuc").textContent = brl.format(lucro); $("oiMar").textContent = lines.length ? pct.format(mar) + "%" : "—";
+    $("oWarn").hidden = !(lines.length && lucro < 0);
+
+    var T = [];
+    if (!lines.length) { T.push("Adicione produtos para montar o orçamento."); }
+    else {
+      T.push("Orçamento" + (O.cliente.trim() ? " para " + O.cliente.trim() : "")); T.push("");
+      lines.forEach(function (L) { T.push(L); }); T.push("");
+      if (O.desc > 0) { T.push("Subtotal: " + brl.format(sub)); T.push("Desconto (" + pct.format(O.desc) + "%): -" + brl.format(desconto)); }
+      if (O.frete > 0) T.push("Frete: " + brl.format(O.frete));
+      T.push("Total: " + brl.format(total));
+      if (O.val > 0) T.push("Orçamento válido por " + O.val + (O.val === 1 ? " dia." : " dias."));
+    }
+    $("oTxt").textContent = T.join("\n");
+  }
+
+  /* ---------- meta e vendas ---------- */
+  var M = Object.assign({ meta: 1000, conta: "pl", horas: 35 }, lsGet(MKEY, {}));
+  $("vMeta").value = M.meta; $("vConta").value = M.conta; $("vHoras").value = M.horas;
+  $("vData").value = ymd(); $("vMes").value = ymd().slice(0, 7);
+  var metaTimer = null, metaDoc = null, vcol = null, vMode = "loading", V = [], vPend = null, vPendTimer = null, vmTimer = null, metaApplied = false;
+
+  function setV(t, err) {
+    var m = $("vMsg"); m.textContent = t; m.style.color = err ? "var(--danger)" : "";
+    clearTimeout(vmTimer); if (t) vmTimer = setTimeout(function () { m.textContent = ""; }, 4000);
+  }
+  function ganhoUn(x) { return (x.mo || 0) + (M.conta === "pl" ? (x.lucro || 0) : 0); }
+  function onMeta() {
+    M.meta = num("vMeta"); M.conta = $("vConta").value === "p" ? "p" : "pl"; M.horas = num("vHoras");
+    lsSet(MKEY, M); renderVend(); clearTimeout(metaTimer); metaTimer = setTimeout(saveMeta, 700);
+  }
+  async function saveMeta() {
+    if (vMode !== "db" || !metaDoc) return;
+    try { await metaDoc.set({ meta: M.meta, conta: M.conta, horas: M.horas }); } catch (e) {}
+  }
+  ["vMeta", "vConta", "vHoras"].forEach(function (id) { $(id).addEventListener("input", onMeta); $(id).addEventListener("change", onMeta); });
+  ["input", "change"].forEach(function (ev) { $("vMes").addEventListener(ev, renderVend); });
+  function applyMeta(d) {
+    var ae = document.activeElement;
+    if (metaApplied && ae && $("tab-vend").contains(ae)) return;
+    metaApplied = true;
+    if (typeof d.meta === "number") M.meta = d.meta;
+    if (d.conta === "p" || d.conta === "pl") M.conta = d.conta;
+    if (typeof d.horas === "number") M.horas = d.horas;
+    $("vMeta").value = M.meta; $("vConta").value = M.conta; $("vHoras").value = M.horas;
+    lsSet(MKEY, M); renderVend();
+  }
+
+  $("vAdd").addEventListener("click", async function () {
+    var it = itemById($("vSel").value);
+    if (!it) { setV("Salve um produto na aba Calculadora e escolha-o aqui.", true); return; }
+    var qtd = Math.max(1, Math.round(num("vQtd"))), preco = num("vPreco"), data = $("vData").value || ymd();
+    if (!(preco > 0)) { setV("Informe o preço cobrado.", true); return; }
+    var pr = priceOf(it);
+    if (!pr.ok) { setV("Ajuste a margem e as taxas antes de registrar.", true); return; }
+    var p = pr.parts, rep = r2(p.fil + p.en + p.dep + p.fal + p.emb), mo = r2(p.mo);
+    var taxas = r2(preco * state.taxa / 100 + state.fixa), lucro = r2(preco - rep - mo - taxas);
+    var entry = { nome: it.nome, produtoId: it.id, qtd: qtd, preco: r2(preco), rep: rep, mo: mo, taxas: taxas, lucro: lucro, data: data, criadoEm: new Date().toISOString() };
+    var btn = $("vAdd"); btn.disabled = true;
+    try {
+      if (vMode === "db") await vcol.add(entry);
+      else { V.push(Object.assign({ id: "l" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) }, entry)); lsSet(VKEY, V); renderVend(); }
+      setV("Venda registrada."); vTouched = false; fillPrice();
+    } catch (e) {
+      setV(e && e.code === "invalid_argument" ? "Você não tem permissão para gravar vendas." : "Não foi possível registrar. Tente de novo.", true);
+    }
+    btn.disabled = false;
+  });
+
+  async function delVenda(x) {
+    if (vPend !== x.id) {
+      vPend = x.id; clearTimeout(vPendTimer);
+      vPendTimer = setTimeout(function () { vPend = null; renderVend(); }, 3000);
+      renderVend(); return;
+    }
+    vPend = null; clearTimeout(vPendTimer);
+    try {
+      if (vMode === "db") await vcol.doc(x.id).delete();
+      else { V = V.filter(function (y) { return y.id !== x.id; }); lsSet(VKEY, V); renderVend(); }
+      setV("Venda excluída.");
+    } catch (e) { setV("Não foi possível excluir.", true); renderVend(); }
+  }
+
+  function renderVend() {
+    if ($("tab-vend").hidden) return;
+    var mes = /^\d{4}-\d{2}$/.test($("vMes").value) ? $("vMes").value : ymd().slice(0, 7);
+    var rows = V.filter(function (x) { return String(x.data || "").slice(0, 7) === mes; })
+      .sort(function (a, b) { return String(b.data || "").localeCompare(String(a.data || "")) || String(b.criadoEm || "").localeCompare(String(a.criadoEm || "")); });
+    var t = { rep: 0, mo: 0, luc: 0, tax: 0, fat: 0, ganho: 0 };
+    rows.forEach(function (x) {
+      var q = x.qtd || 1;
+      t.rep += q * (x.rep || 0); t.mo += q * (x.mo || 0); t.luc += q * (x.lucro || 0); t.tax += q * (x.taxas || 0); t.fat += q * (x.preco || 0); t.ganho += q * ganhoUn(x);
+    });
+    var p = M.meta > 0 ? t.ganho / M.meta * 100 : 0;
+    $("vBar").style.width = Math.min(100, Math.max(0, p)) + "%";
+    $("vMeter").setAttribute("aria-label", "Progresso da meta: " + pct.format(p) + "%");
+    $("vProg").textContent = brl.format(t.ganho) + " de " + brl.format(M.meta) + " (" + pct.format(p) + "%)" + (M.meta > 0 ? (p >= 100 ? " · meta batida" : " · faltam " + brl.format(M.meta - t.ganho)) : "");
+    $("vb-rep").textContent = brl.format(t.rep); $("vb-mo").textContent = brl.format(t.mo); $("vb-luc").textContent = brl.format(t.luc);
+    $("vb-tax").textContent = brl.format(t.tax); $("vb-fat").textContent = brl.format(t.fat);
+
+    var vb = $("vRows"); vb.textContent = "";
+    if (!rows.length) {
+      var er = el("tr"), ec = td(vMode === "loading" ? "Carregando vendas..." : "Nenhuma venda neste mês."); ec.colSpan = 6; er.appendChild(ec); vb.appendChild(er);
+    }
+    rows.slice(0, 200).forEach(function (x) {
+      var tr = el("tr");
+      tr.appendChild(td(fdata(x.data))); tr.appendChild(td(x.nome, "l")); tr.appendChild(td(String(x.qtd || 1)));
+      tr.appendChild(td(brl.format(x.preco || 0))); tr.appendChild(td(brl.format((x.qtd || 1) * ganhoUn(x))));
+      var del = el("button", "ox", vPend === x.id ? "Confirmar" : "Excluir"); del.type = "button";
+      del.setAttribute("aria-label", "Excluir venda de " + x.nome);
+      del.addEventListener("click", function () { delVenda(x); });
+      var dc = td(""); dc.appendChild(del); tr.appendChild(dc); vb.appendChild(tr);
+    });
+    $("vNote").textContent = vMode === "db" ? "Vendas guardadas nesta página, em qualquer aparelho pelo mesmo link. Os valores de cada venda ficam congelados na data do registro." : vMode === "local" ? "Vendas guardadas só neste navegador." : "";
+
+    var mb = $("vMetaRows"); mb.textContent = "";
+    var arr = sorted(), any = false;
+    arr.forEach(function (it) {
+      var pr = priceOf(it); if (!pr.ok) return;
+      any = true;
+      var pp = pr.parts, ganho = pp.mo + (M.conta === "pl" ? pp.luc : 0), inp = pickProduct(it.inputs || {}), n = Math.max(1, inp.n);
+      var tr = el("tr"); tr.appendChild(td(it.nome)); tr.appendChild(td(brl.format(ganho)));
+      if (ganho <= 0 || M.meta <= 0) { tr.appendChild(td("—")); tr.appendChild(td("—")); tr.appendChild(td("—")); }
+      else {
+        var pcs = Math.ceil(M.meta / ganho - 1e-9), hImp = pcs * (inp.h + inp.min / 60) / n, hTra = pcs * (inp.minManual / 60) / n;
+        tr.appendChild(td(String(pcs))); tr.appendChild(td(Math.round(hImp) + " h"));
+        var c = td((Math.round(hTra * 10) / 10) + " h"); if (M.horas > 0 && hTra > M.horas) c.className = "bad"; tr.appendChild(c);
+      }
+      mb.appendChild(tr);
+    });
+    if (!any) { var e2 = el("tr"), c2 = td("Salve produtos na aba Calculadora para ver esta tabela."); c2.colSpan = 5; e2.appendChild(c2); mb.appendChild(e2); }
+    $("vHint").textContent = any ? "Em vermelho: o tempo de trabalho passa das " + M.horas + " horas que você dedica por mês." : "";
+  }
+
+  async function init() {
+    var db = null;
+    try { if (window.claude && window.claude.use) db = await window.claude.use("db"); } catch (e) {}
+    if (!db) { vMode = "local"; V = lsGet(VKEY, []); if (!Array.isArray(V)) V = []; renderVend(); return; }
+    vMode = "db"; vcol = db.collection("vendas"); metaDoc = db.doc("config/meta");
+    vcol.onSnapshot(function (s) {
+      V = s.docs.map(function (d) { return Object.assign({ id: d.id }, d.data()); }); renderVend();
+    }, function () { vMode = "local"; V = lsGet(VKEY, []); if (!Array.isArray(V)) V = []; renderVend(); });
+    metaDoc.onSnapshot(function (s) { if (s.exists && !s.metadata.hasPendingWrites) applyMeta(s.data()); }, function () {});
+  }
+
+  var tab0 = lsGet(TABKEY, "calc"); if (["calc", "orc", "vend"].indexOf(tab0) < 0) tab0 = "calc";
+  showTab(tab0);
+  init();
+})();
+</script>
+
+</body></html>
